@@ -10,39 +10,23 @@ import pandas as pd
 directorio          = 'F:/modernizacion/'
 directorio_salida   = 'F:/modernizacion/salidas/'
 
+
 archivo             = 'original_predict.csv'
 path_archivo        = directorio_salida+archivo
 data_nombres_predict = pd.read_csv(path_archivo)
 
 # prepara datos
 generos_por_anio = data_nombres_predict.groupby(['anio','genero_pred'])['cantidad'].agg('sum').to_frame()
-generos_por_anio.reset_index(level=generos_por_anio.index.names, inplace=True)
+generos_por_anio.reset_index(level=['genero_pred'], inplace=True)
 
-registros    = []
-generos_por_anio_desglose = pd.DataFrame()
-anios = generos_por_anio['anio'].unique()
-for anio in anios:
-    valores_anio = generos_por_anio[generos_por_anio['anio'] == anio].iloc[:,1:3]
-    
-    cantidad_f  = 0
-    cantidad_m  = 0
-    registro    = []
-    for index, generos in valores_anio.iterrows():
-        if generos['genero_pred'] == 'f':
-            cantidad_f = generos['cantidad']
-        if generos['genero_pred'] == 'm':
-            cantidad_m = generos['cantidad']
-    
-    registro = [anio, cantidad_f, cantidad_m]
-    registros.append(registro)
-
-generos_por_anio_desglose = pd.DataFrame(registros) 
-generos_por_anio_desglose.columns = ['anio', 'femenino', 'masculino']
+generos_por_anio_desglose = pd.DataFrame() 
+generos_por_anio_desglose['femenino'] = generos_por_anio['cantidad'][generos_por_anio['genero_pred'] == 'f']
+generos_por_anio_desglose['masculino'] = generos_por_anio['cantidad'][generos_por_anio['genero_pred'] == 'm']
  
 # guarda sumarizado        
 archivo         = 'predict_por_anio_genero.csv'
 path_archivo    = directorio_salida+archivo
-generos_por_anio_desglose.to_csv(path_archivo, encoding='utf-8', index=False)
+generos_por_anio_desglose.to_csv(path_archivo, encoding='utf-8', index=True)
 
 # grafica
 generos_por_anio_desglose.plot( \
